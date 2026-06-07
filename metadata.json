@@ -1,0 +1,6 @@
+{
+  "name": "Cinematic Scroll Story",
+  "description": "An interactive, scroll-based cinematic visual experience that tells a story of two characters across seven beautifully animated continuous scenes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
