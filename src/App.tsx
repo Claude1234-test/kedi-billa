@@ -98,9 +98,22 @@ export default function App() {
           setCustomAudioName(saved.name);
           setMusicType('mp3');
           setSoundEnabled(true);
+        } else {
+          // Fallback: If no browser-persisted custom file is present in IndexedDB,
+          // check if they've placed a "song.mp3" file inside their project's "public/" directory.
+          // In Vite-based builds (like GitHub to Vercel), files in "public/" are served at the root "/" path.
+          // This automatically makes the song sync across all devices visiting the site!
+          const defaultSongUrl = '/song.mp3';
+          const res = await fetch(defaultSongUrl, { method: 'HEAD' });
+          if (res.ok) {
+            setCustomAudioUrl(defaultSongUrl);
+            setCustomAudioName('song.mp3');
+            setMusicType('mp3');
+            setSoundEnabled(true);
+          }
         }
       } catch (err) {
-        console.warn("Could not restore custom MP3 from database", err);
+        console.warn("Could not restore custom MP3 from database or fallback directory file", err);
       }
     }
     restoreAudio();
