@@ -104,8 +104,9 @@ export default function App() {
           // In Vite-based builds (like GitHub to Vercel), files in "public/" are served at the root "/" path.
           // This automatically makes the song sync across all devices visiting the site!
           const defaultSongUrl = '/song.mp3';
-          const res = await fetch(defaultSongUrl, { method: 'HEAD' });
-          if (res.ok) {
+          const res = await fetch(defaultSongUrl, { method: 'GET' });
+          const contentType = res.headers.get('content-type') || '';
+          if (res.ok && !contentType.includes('text/html')) {
             setCustomAudioUrl(defaultSongUrl);
             setCustomAudioName('song.mp3');
             setMusicType('mp3');
@@ -169,18 +170,31 @@ export default function App() {
   // Custom HTMLAudioElement for local MP3 playback
   const mp3Ref = useRef<HTMLAudioElement | null>(null);
 
-  // Helper effect to manage custom HTMLAudioElement source binding
+  // Helper effect to manage custom HTMLAudioElement source binding with automatic error fallback
   useEffect(() => {
+    let activeHandler: (() => void) | null = null;
+    
     if (customAudioUrl) {
+      const handleAudioError = () => {
+        console.warn("Custom audio URL failed to load/play. Falling back to synthesizer.", customAudioUrl);
+        setMusicType('synth');
+      };
+      activeHandler = handleAudioError;
+
       if (!mp3Ref.current) {
         mp3Ref.current = new Audio(customAudioUrl);
         mp3Ref.current.loop = true;
       } else {
         mp3Ref.current.src = customAudioUrl;
       }
+      mp3Ref.current.addEventListener('error', handleAudioError);
     }
+
     return () => {
       if (mp3Ref.current) {
+        if (activeHandler) {
+          mp3Ref.current.removeEventListener('error', activeHandler);
+        }
         mp3Ref.current.pause();
         mp3Ref.current = null;
       }
